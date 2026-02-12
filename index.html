@@ -6,199 +6,189 @@
     <title>System 404</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --glow: #00ffcc; --red: #ff4444; --bg: #080808; }
+        :root { --glow: #00ffcc; --red: #ff4444; --bg: #050505; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { height: 100vh; margin: 0; background: #000; color: #444; font-family: monospace; overflow: hidden; }
         
-        html, body { 
-            height: 100%; width: 100%; margin: 0; padding: 0;
-            background: #000; color: #444; font-family: monospace;
-            overflow: hidden; 
-        }
+        #fake-ui { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #secret-ui { display: none; flex-direction: column; height: 100%; padding: 10px; background: var(--bg); }
 
-        /* The Bait Screen */
-        #fake-ui { 
-            height: 100%; display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; text-align: center;
-        }
+        /* Online Status Bar */
+        #status-bar { font-size: 0.65rem; padding: 5px; color: #666; border-bottom: 1px solid #111; margin-bottom: 5px; }
+        .online { color: var(--glow); }
 
-        /* The Real Invention */
-        #secret-ui { 
-            display: none; flex-direction: column; 
-            height: 100%; width: 100%; padding: 8px; background: var(--bg);
-        }
-
-        #chat-box { 
-            flex: 1; overflow-y: auto; background: #000;
-            border: 1px solid #222; border-left: 2px solid var(--glow);
-            padding: 8px; font-size: 0.8rem; margin-bottom: 8px;
-            border-radius: 4px; color: #ccc;
-        }
-
-        .msg { margin-bottom: 6px; word-wrap: break-word; line-height: 1.2; }
-        .u { color: var(--glow); font-weight: bold; }
-
-        /* Controls */
-        .row { display: flex; gap: 4px; margin-bottom: 6px; }
-        input { 
-            flex: 1; background: #111; border: 1px solid #333; 
-            color: #fff; padding: 12px; font-size: 0.85rem; border-radius: 4px;
-        }
-        button { 
-            background: #111; border: 1px solid var(--glow); 
-            color: var(--glow); padding: 10px; font-weight: bold; 
-            font-size: 0.75rem; border-radius: 4px;
-        }
-
-        /* Vibration Buttons */
-        .hap-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-bottom: 8px; }
-        .h-btn { border-color: #444; color: #aaa; }
-        .h-btn.red { border-color: var(--red); color: var(--red); }
-
-        /* Voice Module */
-        #v-area { 
-            background: #111; border: 1px solid #222; padding: 10px; 
-            border-radius: 6px; text-align: center; min-height: 60px;
-        }
-        #v-btn { width: 100%; color: var(--red); border-color: var(--red); height: 45px; }
-        .p-bar { display: none; gap: 4px; width: 100%; }
-        .p-bar button { flex: 1; height: 45px; }
-
-        /* Bottom ID display */
-        #id-tag { font-size: 0.6rem; color: #333; text-align: center; margin-top: 6px; border-top: 1px solid #111; padding-top: 4px; }
+        #chat-box { flex: 1; overflow-y: auto; border-left: 2px solid var(--glow); padding: 10px; font-size: 0.8rem; margin-bottom: 10px; color: #ccc; }
+        .msg { margin-bottom: 8px; border-bottom: 1px solid #111; padding-bottom: 4px; }
+        .u-tag { color: var(--glow); font-weight: bold; }
         
-        /* Panic Button at the top */
-        .panic { position: fixed; top: 0; left: 0; width: 100%; height: 35px; z-index: 100; }
+        /* Audio Player Styling */
+        .audio-msg { background: #111; padding: 5px; border-radius: 4px; margin-top: 5px; display: inline-block; border: 1px solid #333; }
+        .audio-msg button { padding: 4px 10px; background: none; border: 1px solid var(--glow); color: var(--glow); font-size: 0.6rem; cursor: pointer; }
+
+        .row { display: flex; gap: 5px; margin-bottom: 8px; }
+        input { flex: 1; background: #111; border: 1px solid #222; color: white; padding: 12px; font-size: 0.8rem; border-radius: 4px; }
+        button { background: #111; border: 1px solid var(--glow); color: var(--glow); padding: 10px; font-weight: bold; border-radius: 4px; font-size: 0.7rem; }
+
+        .haptic-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 10px; }
+        
+        #v-area { background: #111; padding: 10px; border-radius: 8px; text-align: center; position: relative; }
+        #v-btn { width: 100%; color: var(--red); border-color: var(--red); }
+        .preview-box { display: none; gap: 5px; width: 100%; }
+        .preview-box button { flex: 1; }
+
+        #id-tag { font-size: 0.6rem; text-align: center; color: #333; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <div id="fake-ui" onclick="unlock()">
         <h1>404</h1>
-        <p>File Not Found</p>
+        <p>Protocol Error</p>
     </div>
 
     <div id="secret-ui">
-        <div class="panic" onclick="location.reload()"></div>
-        
-        <div id="chat-box">-- SECURE CHANNEL --</div>
+        <div id="status-bar">PARTNER: <span id="p-status">OFFLINE</span></div>
+        <div id="chat-box">-- TAP SCREEN ONCE TO ENABLE VIBRATIONS --</div>
 
         <div class="row">
-            <input type="text" id="target" placeholder="Paste Partner ID">
-            <button onclick="link()">LINK</button>
+            <input type="text" id="target" placeholder="6-digit ID">
+            <button onclick="connectToPeer()">LINK</button>
         </div>
 
         <div class="row">
-            <input type="text" id="msg-in" placeholder="Message...">
-            <button onclick="send()">SEND</button>
+            <input type="text" id="m-in" placeholder="Message...">
+            <button onclick="sendText()">SEND</button>
         </div>
 
-        <div class="hap-bar">
-            <button class="h-btn" onclick="hap('yes')">YES (••)</button>
-            <button class="h-btn" onclick="hap('no')">NO (—)</button>
-            <button class="h-btn red" onclick="hap('alert')">ALERT (!!!)</button>
+        <div class="haptic-grid">
+            <button onclick="sendHap('yes')">YES</button>
+            <button onclick="sendHap('no')">NO</button>
+            <button onclick="sendHap('alert')" style="color:var(--red); border-color:var(--red);">ALERT</button>
         </div>
 
         <div id="v-area">
-            <button id="v-btn" onclick="recStart()">TAP TO RECORD (5s)</button>
-            <div id="p-bar" class="p-bar">
-                <button onclick="pPlay()">PREVIEW</button>
-                <button onclick="pSend()" style="background:var(--glow); color:#000; border:none;">SEND</button>
-                <button onclick="pReset()" style="border-color:#444; color:#444;">X</button>
+            <button id="v-btn" onclick="startRec()">TAP TO RECORD (5s)</button>
+            <div id="preview-box" class="preview-box">
+                <button onclick="playLocal()">PREVIEW</button>
+                <button onclick="sendVoice()" style="background:var(--glow); color:black;">SEND VOICE</button>
+                <button onclick="resetRec()">X</button>
             </div>
         </div>
 
-        <div id="id-tag">YOUR UNIQUE ID: <span id="my-id">GENERATING...</span></div>
+        <div id="id-tag">MY ID: <span id="my-id" style="color:#666">...</span></div>
     </div>
 
     <script>
-        let peer, conns = [], myName = "", audio = null, recorder, chunks = [], clicks = 0;
-        const vibrations = { yes: [150, 50, 150], no: [500], alert: [100, 50, 100, 50, 100] };
+        let peer, conns = [], myName = "", audioData = null, rec, chunks = [], clicks = 0;
+        const hapLib = { 'yes': [200, 100, 200], 'no': [500], 'alert': [100, 50, 100, 50, 100, 50, 500] };
+
+        // 1. Generate short 6-character ID
+        const shortID = Math.random().toString(36).substring(2, 8).toUpperCase();
 
         function unlock() {
-            clicks++;
-            if (clicks >= 3) {
-                myName = prompt("Enter Your Display Name:") || "Anon";
+            if (++clicks >= 3) {
+                // REQUIRED: User interaction "unlocks" vibration/audio for the session
+                navigator.vibrate(50); 
+                myName = prompt("Display Name:") || "Ghost";
                 document.getElementById('fake-ui').style.display = 'none';
                 document.getElementById('secret-ui').style.display = 'flex';
-                
-                // Initialize Peer with STUN servers for long distance
-                peer = new Peer({ config: {'iceServers': [{url:'stun:stun.l.google.com:19302'}]} });
-                peer.on('open', id => document.getElementById('my-id').innerText = id);
-                peer.on('connection', c => handle(c));
+                initPeer();
             }
         }
 
-        function link() { 
-            const id = document.getElementById('target').value;
-            if(id) handle(peer.connect(id)); 
+        function initPeer() {
+            peer = new Peer(shortID, { config: {'iceServers': [{url:'stun:stun.l.google.com:19302'}]} });
+            peer.on('open', id => document.getElementById('my-id').innerText = id);
+            peer.on('connection', c => setup(c));
+            
+            // Online status heartbeat
+            setInterval(() => {
+                const status = conns.some(c => c.open) ? "ONLINE" : "OFFLINE";
+                const el = document.getElementById('p-status');
+                el.innerText = status;
+                el.className = status === "ONLINE" ? "online" : "";
+            }, 3000);
         }
 
-        function handle(c) {
+        function connectToPeer() {
+            const id = document.getElementById('target').value.toUpperCase();
+            if(id) setup(peer.connect(id));
+        }
+
+        function setup(c) {
             c.on('open', () => { 
                 conns.push(c); 
-                add("SYSTEM", "SECURE LINK ESTABLISHED"); 
+                log("SYSTEM", "LINK ACTIVE"); 
             });
             c.on('data', d => {
-                if (d.t === 'txt') add(d.n, d.v);
+                if (d.t === 'txt') log(d.n, d.v);
                 if (d.t === 'hap') { 
-                    navigator.vibrate(vibrations[d.v]); 
-                    add(d.n, "[Haptic: " + d.v + "]"); 
+                    navigator.vibrate(hapLib[d.v]); 
+                    log(d.n, `[Haptic Signal: ${d.v}]`); 
                 }
-                if (d.t === 'voc') { 
-                    add(d.n, "[Voice Message Received]"); 
-                    new Audio(d.v).play(); 
+                if (d.t === 'voc') {
+                    // Create a playable button for the received voice
+                    const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    const id = "aud_" + Date.now();
+                    log(d.n, `Voice Note <div class="audio-msg"><button onclick="playReceived('${id}')">PLAY AUDIO</button></div><audio id="${id}" src="${d.v}"></audio>`);
                 }
             });
         }
 
-        function add(n, m) {
+        function log(n, m) {
             const b = document.getElementById('chat-box');
-            b.innerHTML += `<div class="msg"><span class="u">[${n}]</span> ${m}</div>`;
+            b.innerHTML += `<div class="msg"><span class="u-tag">[${n}]</span> ${m}</div>`;
             b.scrollTop = b.scrollHeight;
         }
 
-        function send() {
-            const i = document.getElementById('msg-in');
-            if(!i.value) return;
-            broadcast({t:'txt', v:i.value, n:myName});
-            add("ME", i.value); 
-            i.value = "";
+        function sendText() {
+            const val = document.getElementById('m-in').value;
+            if(!val) return;
+            broadcast({t:'txt', v:val, n:myName});
+            log("ME", val);
+            document.getElementById('m-in').value = "";
         }
 
-        function hap(v) { 
-            broadcast({t:'hap', v:v, n:myName}); 
-            navigator.vibrate(vibrations[v]); 
+        function sendHap(type) {
+            broadcast({t:'hap', v:type, n:myName});
+            navigator.vibrate(hapLib[type]);
         }
 
-        async function recStart() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                recorder = new MediaRecorder(stream, { mimeType: 'audio/webm', audioBitsPerSecond: 12000 });
-                chunks = [];
-                recorder.ondataavailable = e => chunks.push(e.data);
-                recorder.onstop = () => {
-                    const blob = new Blob(chunks, { type: 'audio/webm' });
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        audio = reader.result;
-                        document.getElementById('v-btn').style.display = "none";
-                        document.getElementById('p-bar').style.display = "flex";
-                    };
-                    reader.readAsDataURL(blob);
+        // Voice Recording Logic
+        async function startRec() {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            rec = new MediaRecorder(stream, { mimeType: 'audio/webm', audioBitsPerSecond: 16000 });
+            chunks = [];
+            rec.ondataavailable = e => chunks.push(e.data);
+            rec.onstop = () => {
+                const blob = new Blob(chunks, { type: 'audio/webm' });
+                const r = new FileReader();
+                r.onload = () => {
+                    audioData = r.result;
+                    document.getElementById('v-btn').style.display = "none";
+                    document.getElementById('preview-box').style.display = "flex";
                 };
-                recorder.start();
-                document.getElementById('v-btn').innerText = "RECORDING... (05s)";
-                setTimeout(() => { if(recorder.state === "recording") recorder.stop(); }, 5000);
-            } catch(err) { add("SYSTEM", "Mic Error: Ensure HTTPS or local testing"); }
+                r.readAsDataURL(blob);
+            };
+            rec.start();
+            document.getElementById('v-btn').innerText = "RECORDING (05s)...";
+            setTimeout(() => { if(rec.state === "recording") rec.stop(); }, 5000);
         }
 
-        function pPlay() { if(audio) new Audio(audio).play(); }
-        function pSend() { broadcast({t:'voc', v:audio, n:myName}); add("ME", "[Voice Sent]"); pReset(); }
-        function pReset() { 
-            audio = null; 
-            document.getElementById('v-btn').style.display = "block"; 
-            document.getElementById('v-btn').innerText = "TAP TO RECORD (5s)"; 
-            document.getElementById('p-bar').style.display = "none"; 
+        function playLocal() { if(audioData) new Audio(audioData).play(); }
+        function playReceived(id) { document.getElementById(id).play(); }
+        
+        function sendVoice() {
+            broadcast({t:'voc', v:audioData, n:myName});
+            log("ME", "[Voice Sent]");
+            resetRec();
+        }
+
+        function resetRec() {
+            audioData = null;
+            document.getElementById('v-btn').style.display = "block";
+            document.getElementById('v-btn').innerText = "TAP TO RECORD (5s)";
+            document.getElementById('preview-box').style.display = "none";
         }
 
         function broadcast(d) { conns.forEach(c => { if(c.open) c.send(d); }); }
