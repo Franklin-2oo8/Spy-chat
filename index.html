@@ -6,57 +6,53 @@
     <title>System 404</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --glow: #00ffcc; --red: #ff4444; --bg: #050505; --panel: #111; }
+        :root { --glow: #00ffcc; --red: #ff4444; --bg: #050505; --panel: #111; --blue: #5d5df5; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-        
         body { height: 100svh; background: #000; color: #ccc; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; }
         
-        #fake-ui { height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #333; }
-        #secret-ui { display: none; flex-direction: column; height: 100svh; width: 100%; background: var(--bg); padding: 10px; }
+        #fake-ui { height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #222; }
+        #secret-ui { display: none; flex-direction: column; height: 100svh; width: 100%; background: var(--bg); padding: 8px; }
 
-        #status-bar { font-size: 0.7rem; padding: 5px 0; color: #666; display: flex; justify-content: space-between; text-transform: uppercase; }
-        .online { color: var(--glow); text-shadow: 0 0 5px var(--glow); }
+        #status-bar { font-size: 0.65rem; padding: 4px 0; color: #444; display: flex; justify-content: space-between; border-bottom: 1px solid #111; }
+        .online { color: var(--glow); font-weight: bold; }
 
-        #chat-box { flex: 1; overflow-y: auto; border: 1px solid #222; border-left: 3px solid var(--glow); padding: 10px; font-size: 0.85rem; background: #000; margin: 5px 0; border-radius: 4px; }
-        .msg { margin-bottom: 8px; border-bottom: 1px solid #0d0d0d; padding-bottom: 4px; }
+        #chat-box { flex: 1; overflow-y: auto; border-left: 2px solid var(--glow); padding: 10px; font-size: 0.85rem; background: #000; margin: 5px 0; border-radius: 4px; }
+        .msg { margin-bottom: 8px; border-bottom: 1px solid #0d0d0d; padding-bottom: 4px; word-wrap: break-word; }
         .u-tag { color: var(--glow); font-weight: bold; margin-right: 5px; }
+        img { max-width: 80%; border-radius: 8px; margin-top: 5px; border: 1px solid #333; }
 
-        .controls { display: flex; flex-direction: column; gap: 6px; }
-        .row { display: flex; gap: 6px; width: 100%; }
+        .controls { display: flex; flex-direction: column; gap: 5px; }
+        .row { display: flex; gap: 5px; width: 100%; }
         
-        input { flex: 1; background: var(--panel); border: 1px solid #333; color: white; padding: 12px; font-size: 0.9rem; border-radius: 6px; outline: none; }
-        button { background: var(--panel); border: 1px solid var(--glow); color: var(--glow); padding: 10px; font-weight: bold; border-radius: 6px; font-size: 0.75rem; }
-        button:active { background: var(--glow); color: #000; }
+        input { flex: 1; background: var(--panel); border: 1px solid #222; color: white; padding: 12px; font-size: 0.9rem; border-radius: 6px; outline: none; }
+        button { background: var(--panel); border: 1px solid var(--glow); color: var(--glow); padding: 10px; font-weight: bold; border-radius: 6px; font-size: 0.7rem; }
 
-        .haptic-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; }
-        .call-btn { border-color: #5d5df5; color: #5d5df5; }
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 4px; }
+        .btn-blue { border-color: var(--blue); color: var(--blue); }
+        .btn-red { border-color: var(--red); color: var(--red); }
 
-        #v-area { background: var(--panel); border: 1px solid #222; border-radius: 8px; position: relative; min-height: 50px; display: flex; align-items: center; margin-top: 4px; }
-        #v-btn { width: 100%; height: 100%; color: var(--red); border-color: var(--red); }
-        
-        #countdown-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: bold; color: var(--red); background: rgba(0,0,0,0.9); border-radius: 8px; z-index: 10; }
+        #v-area { background: var(--panel); border-radius: 8px; position: relative; height: 45px; display: flex; align-items: center; margin-top: 2px; }
+        #countdown-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: bold; color: var(--red); background: rgba(0,0,0,0.9); border-radius: 8px; z-index: 10; }
+        .preview-box { display: none; gap: 4px; width: 100%; padding: 0 5px; height: 100%; align-items: center; }
+        .preview-box button { flex: 1; height: 35px; }
 
-        .preview-box { display: none; gap: 6px; width: 100%; padding: 0 5px; }
-        .preview-box button { flex: 1; }
-
-        #id-tag { font-size: 0.6rem; text-align: center; color: #444; margin-top: 8px; padding-top: 5px; border-top: 1px solid #111; }
-        .panic { position: fixed; top: 0; left: 0; width: 100%; height: 40px; z-index: 999; }
-        
-        /* Incoming Call Modal */
-        #call-ui { display:none; position:fixed; top:20%; left:10%; width:80%; background:#111; border:2px solid var(--glow); padding:20px; text-align:center; z-index:1000; border-radius:10px; }
+        #call-ui { display:none; position:fixed; top:25%; left:10%; width:80%; background:#111; border:2px solid var(--blue); padding:20px; text-align:center; z-index:1000; border-radius:12px; }
+        #active-call-bar { display: none; background: var(--blue); color: white; font-size: 0.7rem; padding: 5px; text-align: center; font-weight: bold; border-radius: 4px; margin-bottom: 5px; }
+        #id-tag { font-size: 0.6rem; text-align: center; color: #222; margin-top: 5px; }
     </style>
 </head>
 <body>
 
     <div id="fake-ui" onclick="unlock()">
         <h1>404</h1>
-        <p>Resource Error: Link Broken</p>
+        <p>Resource Error</p>
     </div>
 
     <div id="secret-ui">
-        <div class="panic" onclick="location.reload()"></div>
-        <div id="status-bar"><span>NET: <span id="p-status">OFFLINE</span></span><span>PHANTOM_v6</span></div>
-        <div id="chat-box">-- SECURE BOOT COMPLETE --</div>
+        <div id="active-call-bar">ACTIVE CALL | <span onclick="endCall()" style="text-decoration:underline">TAP TO END</span></div>
+        <div id="status-bar"><span>NET: <span id="p-status">OFFLINE</span></span><span>PHANTOM_v6.5</span></div>
+        
+        <div id="chat-box">-- READY --</div>
 
         <div class="controls">
             <div class="row">
@@ -67,14 +63,17 @@
                 <input type="text" id="m-in" placeholder="Message...">
                 <button onclick="sendText()">SEND</button>
             </div>
-            <div class="haptic-grid">
+            <div class="action-grid">
                 <button onclick="sendHap('yes')">YES</button>
                 <button onclick="sendHap('no')">NO</button>
-                <button onclick="sendHap('alert')" style="color:var(--red);border-color:var(--red);">!!!</button>
-                <button class="call-btn" onclick="startCall()">VOICE</button>
+                <button class="btn-red" onclick="sendHap('alert')">!!!</button>
+                <button class="btn-blue" onclick="startCall()">CALL</button>
+                <button onclick="document.getElementById('file-in').click()">IMG</button>
             </div>
+            <input type="file" id="file-in" accept="image/*" style="display:none" onchange="sendImg(this)">
+            
             <div id="v-area">
-                <button id="v-btn" onclick="startRec()">VOICE NOTE (10s)</button>
+                <button id="v-btn" style="width:100%; height:100%; border-color:var(--red); color:var(--red)" onclick="startRec()">VOICE NOTE (10s)</button>
                 <div id="countdown-overlay">10</div>
                 <div id="preview-box" class="preview-box">
                     <button onclick="playLocal()" style="color:#fff;">PLAY</button>
@@ -83,143 +82,128 @@
                 </div>
             </div>
         </div>
-        <div id="id-tag">YOUR ID: <span id="my-id" style="color:#888">...</span></div>
+        <div id="id-tag">ID: <span id="my-id">...</span></div>
     </div>
 
     <div id="call-ui">
-        <h3 style="color:var(--glow)">INCOMING VOICE CALL</h3>
-        <p id="caller-name" style="margin:15px 0"></p>
-        <button onclick="answerCall()" style="background:var(--glow); color:#000; width:100%; margin-bottom:10px">ANSWER</button>
-        <button onclick="location.reload()" style="border-color:var(--red); color:var(--red); width:100%">REJECT</button>
+        <h3 style="color:var(--blue)">INCOMING CALL</h3>
+        <p style="margin:15px 0; color:#888">Encrypted Voice Link...</p>
+        <button onclick="answerCall()" style="background:var(--blue); color:#fff; width:100%; margin-bottom:10px; border:none; height:45px">ANSWER</button>
+        <button onclick="rejectCall()" style="border-color:var(--red); color:var(--red); width:100%; height:45px">REJECT</button>
     </div>
 
     <script>
-        let peer, conns = [], myName = "", audioData = null, rec, chunks = [], clicks = 0, currentCall;
+        let peer, conns = [], myName = "", audioData = null, rec, chunks = [], clicks = 0, currentCall, localStream;
         const hapLib = { 'yes': [200, 100, 200], 'no': [500], 'alert': [100, 50, 100, 50, 100, 50, 500] };
 
-        // 1. PERSISTENT ID LOGIC
-        let savedID = localStorage.getItem('phantom_id');
-        if(!savedID) {
-            savedID = Math.random().toString(36).substring(2, 8).toUpperCase();
-            localStorage.setItem('phantom_id', savedID);
-        }
+        let savedID = localStorage.getItem('phantom_id') || Math.random().toString(36).substring(2, 8).toUpperCase();
+        localStorage.setItem('phantom_id', savedID);
 
-        function unlock() {
-            if (++clicks >= 3) {
-                navigator.vibrate(50); 
-                myName = prompt("Code Name:") || "Ghost";
-                document.getElementById('fake-ui').style.display = 'none';
-                document.getElementById('secret-ui').style.display = 'flex';
-                initPeer();
-            }
-        }
+        function unlock() { if (++clicks >= 3) { myName = prompt("Name:") || "Anon"; document.getElementById('fake-ui').style.display = 'none'; document.getElementById('secret-ui').style.display = 'flex'; initPeer(); } }
 
         function initPeer() {
             peer = new Peer(savedID, { config: {'iceServers': [{url:'stun:stun.l.google.com:19302'}]} });
             peer.on('open', id => document.getElementById('my-id').innerText = id);
             peer.on('connection', c => setup(c));
-            
-            // Handle Incoming Calls
-            peer.on('call', call => {
-                currentCall = call;
-                document.getElementById('call-ui').style.display = 'block';
-                document.getElementById('caller-name').innerText = "Incoming Encrypted Link...";
-                navigator.vibrate([500, 500, 500]);
-            });
-
-            setInterval(() => {
-                const isOnline = conns.some(c => c.open);
-                const el = document.getElementById('p-status');
-                el.innerText = isOnline ? "ONLINE" : "OFFLINE";
-                el.className = isOnline ? "online" : "";
-            }, 3000);
+            peer.on('call', call => { currentCall = call; document.getElementById('call-ui').style.display = 'block'; navigator.vibrate([100, 100, 100]); });
+            setInterval(() => { const is = conns.some(c => c.open); const el = document.getElementById('p-status'); el.innerText = is ? "ONLINE" : "OFFLINE"; el.className = is ? "online" : ""; }, 3000);
         }
 
-        function connectToPeer() {
-            const id = document.getElementById('target').value.toUpperCase();
-            if(id) setup(peer.connect(id));
-        }
+        function connectToPeer() { const id = document.getElementById('target').value.toUpperCase(); if(id) setup(peer.connect(id)); }
 
         function setup(c) {
-            c.on('open', () => { conns.push(c); log("SYSTEM", "SECURE TUNNEL OPEN"); });
+            c.on('open', () => { conns.push(c); log("SYSTEM", "LINKED"); });
             c.on('data', d => {
                 if (d.t === 'txt') log(d.n, d.v);
+                if (d.t === 'img') log(d.n, `<br><img src="${d.v}">`);
                 if (d.t === 'hap') { navigator.vibrate(hapLib[d.v]); log(d.n, `[Haptic: ${d.v}]`); }
-                if (d.t === 'voc') {
-                    const audId = "aud_" + Date.now();
-                    log(d.n, `Voice Note <div style="display:inline-block;background:#111;padding:5px;border:1px solid #333;margin-left:5px"><button onclick="document.getElementById('${audId}').play()" style="padding:2px 8px;font-size:10px">PLAY</button></div><audio id="${audId}" src="${d.v}"></audio>`);
-                }
+                if (d.t === 'voc') { const aid = "a"+Date.now(); log(d.n, `Voice Note <button onclick="document.getElementById('${aid}').play()" style="padding:2px 8px; font-size:10px">PLAY</button><audio id="${aid}" src="${d.v}"></audio>`); }
             });
         }
 
-        // --- CALL LOGIC ---
         async function startCall() {
-            const targetId = document.getElementById('target').value.toUpperCase();
-            if(!targetId) return alert("Enter Partner ID first");
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const call = peer.call(targetId, stream);
-            log("SYSTEM", "Calling...");
-            call.on('stream', remoteStream => {
-                playStream(remoteStream);
-                log("SYSTEM", "VOICE CONNECTED");
-            });
+            const tid = document.getElementById('target').value.toUpperCase();
+            if(!tid) return;
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: { autoGainControl: true, noiseSuppression: true, echoCancellation: true } });
+            currentCall = peer.call(tid, localStream);
+            document.getElementById('active-call-bar').style.display = "block";
+            currentCall.on('stream', s => playStream(s));
+            currentCall.on('close', endCall);
         }
 
         async function answerCall() {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            currentCall.answer(stream);
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            currentCall.answer(localStream);
             document.getElementById('call-ui').style.display = 'none';
-            currentCall.on('stream', remoteStream => {
-                playStream(remoteStream);
-                log("SYSTEM", "VOICE CONNECTED");
-            });
+            document.getElementById('active-call-bar').style.display = "block";
+            currentCall.on('stream', s => playStream(s));
+            currentCall.on('close', endCall);
         }
 
-        function playStream(stream) {
-            const audio = new Audio();
-            audio.srcObject = stream;
-            audio.play();
+        function playStream(s) { const a = new Audio(); a.srcObject = s; a.play(); }
+        
+        function endCall() {
+            if(currentCall) currentCall.close();
+            if(localStream) localStream.getTracks().forEach(t => t.stop());
+            document.getElementById('active-call-bar').style.display = "none";
+            document.getElementById('call-ui').style.display = 'none';
+            log("SYSTEM", "CALL ENDED");
         }
 
-        // --- VOICE NOTE LOGIC (10s) ---
+        function rejectCall() { document.getElementById('call-ui').style.display = 'none'; if(currentCall) currentCall.close(); }
+
+        function sendImg(input) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const max = 400; 
+                    let w = img.width, h = img.height;
+                    if (w > h) { if(w > max){ h *= max/w; w = max; } }
+                    else { if(h > max){ w *= max/h; h = max; } }
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    const base64 = canvas.toDataURL('image/jpeg', 0.6);
+                    broadcast({t:'img', v:base64, n:myName});
+                    log("ME", `<br><img src="${base64}">`);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
         async function startRec() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                const audioCtx = new AudioContext();
-                const source = audioCtx.createMediaStreamSource(stream);
-                const gainNode = audioCtx.createGain();
-                gainNode.gain.value = 2.5; 
-                const dest = audioCtx.createMediaStreamDestination();
-                source.connect(gainNode); gainNode.connect(dest);
-
-                rec = new MediaRecorder(dest.stream);
-                chunks = [];
+                const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const ctx = new AudioContext();
+                const src = ctx.createMediaStreamSource(s);
+                const g = ctx.createGain(); g.gain.value = 2.5; 
+                const dst = ctx.createMediaStreamDestination();
+                src.connect(g); g.connect(dst);
+                rec = new MediaRecorder(dst.stream); chunks = [];
                 rec.ondataavailable = e => chunks.push(e.data);
                 rec.onstop = () => {
-                    const blob = new Blob(chunks, { type: 'audio/webm' });
+                    const b = new Blob(chunks, { type: 'audio/webm' });
                     const r = new FileReader();
                     r.onload = () => { audioData = r.result; 
                         document.getElementById('v-btn').style.display = "none";
                         document.getElementById('countdown-overlay').style.display = "none";
                         document.getElementById('preview-box').style.display = "flex";
                     };
-                    r.readAsDataURL(blob);
-                    stream.getTracks().forEach(t => t.stop());
+                    r.readAsDataURL(b);
+                    s.getTracks().forEach(t => t.stop());
                 };
                 rec.start();
-                const overlay = document.getElementById('countdown-overlay');
-                overlay.style.display = "flex";
-                let timeLeft = 10;
-                overlay.innerText = timeLeft;
-                const timerInterval = setInterval(() => {
-                    timeLeft--; overlay.innerText = timeLeft;
-                    if(timeLeft <= 0) { clearInterval(timerInterval); if(rec.state === "recording") rec.stop(); }
-                }, 1000);
+                const ov = document.getElementById('countdown-overlay'); ov.style.display = "flex";
+                let t = 10; ov.innerText = t;
+                const iv = setInterval(() => { t--; ov.innerText = t; if(t <= 0){ clearInterval(iv); rec.stop(); }}, 1000);
             } catch(e) { log("SYSTEM", "Mic Error"); }
         }
 
         function log(n, m) { const b = document.getElementById('chat-box'); b.innerHTML += `<div class="msg"><span class="u-tag">[${n}]</span> ${m}</div>`; b.scrollTop = b.scrollHeight; }
-        function sendText() { const val = document.getElementById('m-in').value; if(!val) return; broadcast({t:'txt', v:val, n:myName}); log("ME", val); document.getElementById('m-in').value = ""; }
+        function sendText() { const v = document.getElementById('m-in').value; if(!v) return; broadcast({t:'txt', v:v, n:myName}); log("ME", v); document.getElementById('m-in').value = ""; }
         function sendHap(type) { broadcast({t:'hap', v:type, n:myName}); navigator.vibrate(hapLib[type]); }
         function playLocal() { if(audioData) new Audio(audioData).play(); }
         function sendVoice() { broadcast({t:'voc', v:audioData, n:myName}); log("ME", "[Voice Sent]"); resetRec(); }
