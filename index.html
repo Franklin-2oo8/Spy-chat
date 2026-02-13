@@ -3,210 +3,289 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>System 404</title>
+    <title>PHANTOM MESH v9.5</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --glow: #00ffcc; --red: #ff4444; --bg: #050505; --panel: #111; --blue: #5d5df5; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { height: 100svh; background: #000; color: #ccc; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; }
         
-        #secret-ui { display: flex; flex-direction: column; height: 100svh; width: 100%; background: var(--bg); padding: 8px; }
-        #chat-box { flex: 1; overflow-y: auto; border-left: 2px solid var(--glow); padding: 10px; font-size: 0.85rem; background: #000; margin: 5px 0; }
-        .msg { margin-bottom: 12px; border-bottom: 1px solid #111; padding-bottom: 6px; }
-        .u-tag { color: var(--glow); font-weight: bold; }
+        /* Status UI */
+        #status-bar { font-size: 0.7rem; padding: 10px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; background: #080808; }
+        .dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; background: #333; margin-right: 5px; transition: 0.3s; }
+        .online { background: var(--glow); box-shadow: 0 0 8px var(--glow); }
 
-        .controls { display: flex; flex-direction: column; gap: 5px; }
-        .row { display: flex; gap: 5px; width: 100%; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 10px; font-size: 0.85rem; background: #000; border-left: 1px solid #1a1a1a; }
+        .msg { margin-bottom: 12px; position: relative; padding: 10px; background: #0a0a0a; border-radius: 6px; border: 1px solid #151515; }
+        .tick { font-size: 0.6rem; color: #444; float: right; margin-top: 4px; font-weight: bold; }
+        .delivered { color: var(--glow) !important; }
+
+        /* Controls */
+        .controls { padding: 10px; background: #080808; display: flex; flex-direction: column; gap: 8px; }
+        .row { display: flex; gap: 8px; width: 100%; }
         input { flex: 1; background: var(--panel); border: 1px solid #222; color: white; padding: 12px; border-radius: 6px; outline: none; font-size: 0.9rem; }
         button { background: var(--panel); border: 1px solid var(--glow); color: var(--glow); padding: 10px; font-weight: bold; border-radius: 6px; font-size: 0.7rem; }
+        
+        /* Visualizer Area */
+        #v-area { background: #0d0d0d; border-radius: 8px; min-height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; border: 1px solid #333; }
+        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.4; pointer-events: none; }
+        #timer { font-family: monospace; font-size: 1.2rem; color: var(--red); z-index: 2; font-weight: bold; display:none; }
 
-        /* Recording Panel & Visualizer */
-        #v-area { background: var(--panel); border-radius: 8px; min-height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 5px; border: 1px solid #222; position: relative; overflow: hidden; }
-        #v-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.3; pointer-events: none; display: none; }
-        
-        #timer { font-family: monospace; font-size: 1.2rem; color: var(--red); display: none; z-index: 2; font-weight: bold; }
-        #rec-controls { display: none; gap: 10px; width: 100%; padding: 10px; z-index: 2; }
-        
-        /* Message Audio Player */
-        .audio-player { background: #1a1a1a; padding: 8px; border-radius: 5px; display: flex; align-items: center; gap: 10px; margin-top: 5px; width: fit-content; border: 1px solid #333; }
-        .play-btn { background: var(--glow); color: black; border: none; padding: 6px 12px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; }
+        /* Call Screen */
+        #call-ui { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
-    <div id="secret-ui">
-        <div id="chat-box">-- HD MESH v7.5 ACTIVE --</div>
+    <div id="status-bar">
+        <span><span id="p-dot" class="dot"></span> <span id="p-stat">OFFLINE</span></span>
+        <span id="my-id">INITIALIZING...</span>
+    </div>
 
-        <div class="controls">
-            <div class="row"><input type="text" id="target" placeholder="Partner ID"><button onclick="connectToPeer()">LINK</button></div>
-            <div class="row"><input type="text" id="m-in" placeholder="Message..."><button onclick="sendText()">SEND</button></div>
-            
-            <div class="row">
-                <button onclick="sendHap('alert')" style="color:var(--red); border-color:var(--red)">PANIC</button>
-                <button onclick="startCall()" style="color:var(--blue); border-color:var(--blue); flex:2">HD VOICE CALL</button>
-                <button onclick="document.getElementById('file-in').click()">IMG</button>
-            </div>
-            <input type="file" id="file-in" accept="image/*" style="display:none" onchange="sendImg(this)">
+    <div id="chat-box">-- SECURE BOOT COMPLETE --</div>
 
-            <div id="v-area">
-                <canvas id="v-canvas"></canvas>
-                <button id="v-start-btn" style="width:100%; height:50px;" onclick="startRec()">VOICE NOTE (60s)</button>
+    <div id="call-ui">
+        <h2 id="call-label" style="color:var(--blue); margin-bottom: 30px;">INCOMING CALL</h2>
+        <div class="row" style="justify-content:center; gap:20px;">
+            <button id="ans-btn" style="background:var(--glow); color:#000; padding:20px 40px; display:none" onclick="acceptCall()">ANSWER</button>
+            <button style="background:var(--red); color:#fff; border:none; padding:20px 40px;" onclick="endCall()">HANG UP</button>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="row"><input type="text" id="target" placeholder="Target Peer ID"><button onclick="connect()">LINK</button></div>
+        <div class="row"><input type="text" id="m-in" placeholder="Message..."><button onclick="sendText()">SEND</button></div>
+        <div class="row">
+            <button onclick="startCall()" style="flex:2; color:var(--blue); border-color:var(--blue)">HD VOICE CALL</button>
+            <button onclick="document.getElementById('f-in').click()">IMG</button>
+        </div>
+        <input type="file" id="f-in" style="display:none" onchange="sendImg(this)">
+
+        <div id="v-area">
+            <canvas id="v-canvas"></canvas>
+            <button id="rec-btn" style="width:100%; height:50px;" onclick="startRec()">VOICE NOTE (60s)</button>
+            <div id="rec-active-ui" style="display:none; z-index:2; gap:10px; align-items:center;">
                 <div id="timer">00:00</div>
-                <div id="rec-controls">
-                    <button id="pause-rec-btn" onclick="togglePauseRec()" style="flex:1">PAUSE</button>
-                    <button onclick="stopRec()" style="flex:1; background:var(--red); color:white; border:none;">STOP</button>
-                </div>
-                <div id="preview-box" style="display:none; gap:5px; padding:5px; width:100%; z-index:2;">
-                    <button id="preview-play-btn" onclick="togglePreviewPlay()" style="flex:1">PLAY PREVIEW</button>
-                    <button onclick="sendVoice()" style="flex:1; background:var(--glow); color:black; border:none">SEND</button>
-                    <button onclick="resetRec()" style="flex:0.3">X</button>
-                </div>
+                <button id="pause-rec-btn" onclick="togglePauseRec()">PAUSE</button>
+                <button onclick="stopRec()" style="background:var(--red); color:white; border:none;">DONE</button>
+            </div>
+            <div id="post-rec" style="display:none; z-index:2; gap:10px; padding:5px; width:100%">
+                <button id="pre-play" onclick="togglePreview()" style="flex:1">PLAY</button>
+                <button onclick="sendVoice()" style="background:var(--glow); color:#000; border:none; flex:2">SEND</button>
+                <button onclick="resetRecUI()" style="flex:0.5">X</button>
             </div>
         </div>
     </div>
 
     <script>
-        let peer, conns = [], myName = "User", rec, chunks = [], currentCall, localStream;
-        let audioData = null, previewAudio = new Audio(), timerInt, seconds = 0;
-        let audioCtx, analyser, dataArray, animationId;
+        let peer, conns = [], myId, rec, chunks = [], curCall, localStream, audioData, preview = new Audio();
+        let seconds = 0, timerInt, audioCtx, ringtoneOsc;
 
-        // Auto-unlock for quick testing
-        const savedID = localStorage.getItem('phantom_id') || Math.random().toString(36).substring(2, 8).toUpperCase();
-        localStorage.setItem('phantom_id', savedID);
-        peer = new Peer(savedID);
-        peer.on('open', id => document.getElementById('chat-box').innerHTML += `<div>YOUR ID: ${id}</div>`);
-        peer.on('connection', c => setup(c));
-        peer.on('call', call => { if(confirm("Answer HD Voice?")) answerCall(call); });
+        myId = localStorage.getItem('p_id') || Math.random().toString(36).substr(2,6).toUpperCase();
+        localStorage.setItem('p_id', myId);
+        peer = new Peer(myId, { config: {'iceServers': [{url:'stun:stun.l.google.com:19302'}]} });
+        peer.on('open', id => document.getElementById('my-id').innerText = "MY ID: " + id);
+        
+        peer.on('connection', c => setupConn(c));
+        peer.on('call', call => {
+            curCall = call;
+            document.getElementById('call-ui').style.display='flex';
+            document.getElementById('call-label').innerText = "INCOMING CALL...";
+            document.getElementById('ans-btn').style.display='block';
+            playRing(true);
+        });
 
-        function setup(c) {
-            c.on('open', () => { conns.push(c); log("SYSTEM", "LINKED"); });
+        function connect() {
+            const id = document.getElementById('target').value.toUpperCase();
+            if(id) setupConn(peer.connect(id));
+        }
+
+        function setupConn(c) {
+            c.on('open', () => {
+                if(!conns.find(conn => conn.peer === c.peer)) conns.push(c);
+                log("SYS", "LINK ESTABLISHED");
+                setInterval(() => c.send({t:'hb'}), 2000);
+            });
             c.on('data', d => {
-                if (d.t === 'txt') log(d.n, d.v);
-                if (d.t === 'img') log(d.n, `<br><img src="${d.v}" style="max-width:200px">`);
-                if (d.t === 'voc') renderAudioMsg(d.n, d.v);
+                if(d.t==='hb') updateStatus();
+                if(d.t==='txt') { log(d.n, d.v, d.id); c.send({t:'ack', id:d.id}); }
+                if(d.t==='ack') { 
+                    const t = document.getElementById('tk-'+d.id);
+                    if(t) { t.innerText="DELIVERED"; t.classList.add('delivered'); }
+                }
+                if(d.t==='voc') renderAudio(d.n, d.v, d.id);
             });
         }
 
-        // --- HD VOICE CALL ---
+        // --- IMPROVED RINGTONE ---
+        function playRing(isIncoming) {
+            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            ringtoneOsc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            ringtoneOsc.type = isIncoming ? 'sine' : 'triangle';
+            ringtoneOsc.frequency.setValueAtTime(isIncoming ? 440 : 660, audioCtx.currentTime);
+            // Pulse effect
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.setTargetAtTime(0.2, audioCtx.currentTime, 0.1);
+            ringtoneOsc.connect(gain);
+            gain.connect(audioCtx.destination);
+            ringtoneOsc.start();
+        }
+
+        function stopRing() { if(ringtoneOsc) { ringtoneOsc.stop(); ringtoneOsc = null; } }
+
+        // --- CALLS ---
         async function startCall() {
-            const tid = document.getElementById('target').value.toUpperCase();
-            localStream = await navigator.mediaDevices.getUserMedia({ audio: { autoGainControl: false, noiseSuppression: true, echoCancellation: true } });
-            currentCall = peer.call(tid, localStream);
-            currentCall.on('stream', s => { const a = new Audio(); a.srcObject = s; a.play(); });
-        }
-
-        async function answerCall(call) {
+            const id = document.getElementById('target').value.toUpperCase();
+            if(!id) return;
+            document.getElementById('call-ui').style.display='flex';
+            document.getElementById('call-label').innerText = "DIALING...";
+            playRing(false);
             localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            call.answer(localStream);
-            call.on('stream', s => { const a = new Audio(); a.srcObject = s; a.play(); });
+            curCall = peer.call(id, localStream, { sdpTransform: sdp => sdp.replace("useinbandfec=1", "useinbandfec=1;stereo=1;maxaveragebitrate=128000") });
+            curCall.on('stream', s => { stopRing(); playStream(s); document.getElementById('call-label').innerText = "CONNECTED"; });
         }
 
-        // --- VISUALIZER ENGINE ---
-        function startVisualizer(stream) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const source = audioCtx.createMediaStreamSource(stream);
-            analyser = audioCtx.createAnalyser();
-            analyser.fftSize = 64;
-            source.connect(analyser);
-            
-            const canvas = document.getElementById('v-canvas');
-            const ctx = canvas.getContext('2d');
-            dataArray = new Uint8Array(analyser.frequencyBinCount);
-            canvas.style.display = "block";
-
-            function draw() {
-                animationId = requestAnimationFrame(draw);
-                analyser.getByteFrequencyData(dataArray);
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#00ffcc';
-                let barWidth = (canvas.width / dataArray.length) * 2.5;
-                let x = 0;
-                for(let i = 0; i < dataArray.length; i++) {
-                    let barHeight = dataArray[i] / 2;
-                    ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-                    x += barWidth + 1;
-                }
-            }
-            draw();
+        async function acceptCall() {
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            curCall.answer(localStream);
+            stopRing();
+            document.getElementById('ans-btn').style.display='none';
+            document.getElementById('call-label').innerText = "CONNECTED";
+            curCall.on('stream', s => playStream(s));
         }
 
-        // --- VOICE NOTE LOGIC ---
+        function endCall() {
+            if(curCall) curCall.close();
+            if(localStream) localStream.getTracks().forEach(t => t.stop());
+            stopRing();
+            document.getElementById('call-ui').style.display='none';
+        }
+
+        function playStream(s) { const a = new Audio(); a.srcObject=s; a.play(); }
+
+        // --- VOICE NOTES ---
         async function startRec() {
-            const s = await navigator.mediaDevices.getUserMedia({ audio: true });
-            startVisualizer(s);
-            rec = new MediaRecorder(s);
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            startVis(stream);
+            rec = new MediaRecorder(stream);
             chunks = [];
             rec.ondataavailable = e => chunks.push(e.data);
             rec.onstop = () => {
-                const b = new Blob(chunks, { type: 'audio/webm' });
-                audioData = URL.createObjectURL(b);
-                previewAudio.src = audioData;
-                showUI('preview');
-                cancelAnimationFrame(animationId);
-                document.getElementById('v-canvas').style.display = "none";
-                s.getTracks().forEach(t => t.stop());
+                audioData = URL.createObjectURL(new Blob(chunks, {type:'audio/webm'}));
+                preview.src = audioData;
+                document.getElementById('post-rec').style.display='flex';
+                document.getElementById('rec-active-ui').style.display='none';
+                stream.getTracks().forEach(t=>t.stop());
             };
             rec.start();
-            showUI('recording');
+            document.getElementById('rec-btn').style.display='none';
+            document.getElementById('rec-active-ui').style.display='flex';
+            document.getElementById('timer').style.display='block';
             startTimer();
         }
 
         function togglePauseRec() {
-            if(rec.state === "recording") { rec.pause(); clearInterval(timerInt); }
-            else { rec.resume(); startTimer(); }
+            const btn = document.getElementById('pause-rec-btn');
+            if(rec.state === 'recording') { rec.pause(); clearInterval(timerInt); btn.innerText = "RESUME"; }
+            else { rec.resume(); startTimer(); btn.innerText = "PAUSE"; }
         }
 
         function stopRec() { rec.stop(); clearInterval(timerInt); }
 
-        function togglePreviewPlay() {
-            const btn = document.getElementById('preview-play-btn');
-            if(previewAudio.paused) { previewAudio.play(); btn.innerText = "PAUSE PREVIEW"; }
-            else { previewAudio.pause(); btn.innerText = "PLAY PREVIEW"; }
+        function togglePreview() {
+            const b = document.getElementById('pre-play');
+            if(preview.paused) { preview.play(); b.innerText="PAUSE"; }
+            else { preview.pause(); b.innerText="PLAY"; }
+            preview.onended = () => b.innerText="PLAY";
         }
 
-        function renderAudioMsg(sender, url) {
-            const id = "a" + Math.random().toString(36).substr(2, 5);
-            log(sender, `<div class="audio-player"><button class="play-btn" id="b_${id}" onclick="togglePlay('${id}')">PLAY</button><audio id="${id}" src="${url}"></audio></div>`);
+        function resetRecUI() {
+            document.getElementById('post-rec').style.display='none';
+            document.getElementById('rec-btn').style.display='block';
+            seconds = 0;
+            document.getElementById('timer').innerText = "00:00";
         }
 
-        function togglePlay(id) {
+        async function sendVoice() {
+            const blob = await fetch(audioData).then(r=>r.blob());
+            const reader = new FileReader();
+            reader.onload = () => {
+                const id = Date.now();
+                conns.forEach(c => c.send({t:'voc', v:reader.result, n:'ME', id:id}));
+                renderAudio('ME', reader.result, id);
+                resetRecUI();
+            };
+            reader.readAsDataURL(blob);
+        }
+
+        function renderAudio(n, v, id) {
+            const mid = "a"+id;
+            log(n, `<button onclick="toggleMsgAud('${mid}')" id="btn-${mid}" style="padding:8px">PLAY VOICE NOTE</button><audio id="${mid}" src="${v}"></audio>`, id);
+        }
+
+        window.toggleMsgAud = (id) => {
             const a = document.getElementById(id);
-            const b = document.getElementById('b_'+id);
-            if(a.paused) { a.play(); b.innerText = "PAUSE"; }
-            else { a.pause(); b.innerText = "PLAY"; }
-            a.onended = () => b.innerText = "PLAY";
+            const b = document.getElementById('btn-'+id);
+            if(a.paused) { a.play(); b.innerText="PAUSE"; }
+            else { a.pause(); b.innerText="PLAY"; }
+            a.onended = () => b.innerText="PLAY VOICE NOTE";
+        }
+
+        // --- SYSTEM UTILS ---
+        function log(n, m, id) {
+            const b = document.getElementById('chat-box');
+            const tk = id ? `<span class="tick" id="tk-${id}">SENT</span>` : "";
+            b.innerHTML += `<div class="msg"><b style="color:var(--glow)">${n}:</b> ${m}${tk}</div>`;
+            b.scrollTop = b.scrollHeight;
+        }
+
+        function sendText() {
+            const v = document.getElementById('m-in').value;
+            if(!v) return;
+            const id = Date.now();
+            conns.forEach(c => c.send({t:'txt', v:v, n:'ME', id:id}));
+            log("ME", v, id);
+            document.getElementById('m-in').value="";
+        }
+
+        let lastHb;
+        function updateStatus() {
+            document.getElementById('p-dot').classList.add('online');
+            document.getElementById('p-stat').innerText = "ONLINE";
+            clearTimeout(lastHb);
+            lastHb = setTimeout(() => {
+                document.getElementById('p-dot').classList.remove('online');
+                document.getElementById('p-stat').innerText = "OFFLINE";
+            }, 5000);
         }
 
         function startTimer() {
             timerInt = setInterval(() => {
                 seconds++;
-                let m = Math.floor(seconds/60).toString().padStart(2,'0');
-                let s = (seconds%60).toString().padStart(2,'0');
-                document.getElementById('timer').innerText = `${m}:${s}`;
+                document.getElementById('timer').innerText = `00:${seconds.toString().padStart(2,'0')}`;
                 if(seconds >= 60) stopRec();
             }, 1000);
         }
 
-        function showUI(state) {
-            document.getElementById('v-start-btn').style.display = state === 'start' ? 'block' : 'none';
-            document.getElementById('rec-controls').style.display = state === 'recording' ? 'flex' : 'none';
-            document.getElementById('timer').style.display = state === 'recording' ? 'block' : 'none';
-            document.getElementById('preview-box').style.display = state === 'preview' ? 'flex' : 'none';
+        function startVis(s) {
+            const canvas = document.getElementById('v-canvas');
+            const ctx = canvas.getContext('2d');
+            const ac = new (window.AudioContext || window.webkitAudioContext)();
+            const src = ac.createMediaStreamSource(s);
+            const ana = ac.createAnalyser();
+            src.connect(ana);
+            const data = new Uint8Array(ana.frequencyBinCount);
+            function draw() {
+                requestAnimationFrame(draw);
+                ana.getByteFrequencyData(data);
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                ctx.fillStyle = '#00ffcc';
+                for(let i=0; i<data.length; i+=5) ctx.fillRect(i, 60, 3, -data[i]/3);
+            }
+            draw();
         }
-
-        function resetRec() { seconds = 0; audioData = null; showUI('start'); document.getElementById('timer').innerText = "00:00"; }
-        
-        async function sendVoice() {
-            const b = await fetch(audioData).then(r => r.blob());
-            const f = new FileReader();
-            f.onload = () => { broadcast({t:'voc', v:f.result, n:myName}); renderAudioMsg("ME", f.result); resetRec(); };
-            f.readAsDataURL(b);
-        }
-
-        function log(n, m) { const b = document.getElementById('chat-box'); b.innerHTML += `<div class="msg"><span class="u-tag">[${n}]</span> ${m}</div>`; b.scrollTop = b.scrollHeight; }
-        function sendText() { const v = document.getElementById('m-in').value; if(v){ broadcast({t:'txt',v:v,n:myName}); log("ME",v); document.getElementById('m-in').value=""; }}
-        function broadcast(d) { conns.forEach(c => c.open && c.send(d)); }
-        function connectToPeer() { const id = document.getElementById('target').value.toUpperCase(); if(id) setup(peer.connect(id)); }
     </script>
 </body>
 </html>
