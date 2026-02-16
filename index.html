@@ -3,112 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PHANTOM MESH v12</title>
+    <title>PHANTOM MESH v15</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --glow: #00ffcc; --red: #ff4444; --bg: #000; --panel: #111; --blue: #5d5df5; --grey: #222; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { height: 100svh; background: var(--bg); color: #ccc; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Header & Info */
-        #header { padding: 12px; background: #0a0a0a; border-bottom: 1px solid #1a1a1a; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; }
-        .dot { height: 8px; width: 8px; border-radius: 50%; background: #444; margin-right: 6px; display: inline-block; }
-        .online { background: var(--glow); box-shadow: 0 0 8px var(--glow); }
+        /* Header */
+        #header { padding: 10px; background: #0a0a0a; border-bottom: 1px solid #1a1a1a; display: flex; justify-content: space-between; align-items: center; }
+        .id-badge { font-size: 0.7rem; color: #666; font-family: monospace; }
+        .name-tag { color: var(--glow); font-weight: bold; font-size: 0.85rem; cursor: pointer; border-bottom: 1px dashed var(--glow); transition: 0.3s; }
+        .name-tag:active { color: #fff; border-color: #fff; }
 
-        /* Chat Layout */
-        #chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; background: radial-gradient(circle at center, #050505 0%, #000 100%); }
-        
-        .msg { 
-            max-width: 75%; 
-            padding: 10px 12px; 
-            border-radius: 12px; 
-            font-size: 0.9rem; 
-            line-height: 1.4;
-            position: relative;
-            word-break: break-word; /* Fixes text overflow */
-            overflow-wrap: anywhere;
-            border: 1px solid #1a1a1a;
-        }
-
-        .msg.me { 
-            align-self: flex-end; 
-            background: #1a1a1a; 
-            border-bottom-right-radius: 2px;
-            color: #fff;
-        }
-
-        .msg.them { 
-            align-self: flex-start; 
-            background: #0a0a0a; 
-            border-bottom-left-radius: 2px;
-            border-left: 3px solid var(--glow);
-        }
-
-        .sender-tag { font-size: 0.65rem; color: var(--glow); font-weight: bold; margin-bottom: 3px; display: block; }
-        .tick { font-size: 0.7rem; color: #555; float: right; margin: 4px 0 0 8px; font-weight: bold; }
+        /* Chat */
+        #chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { max-width: 80%; padding: 10px; border-radius: 12px; font-size: 0.9rem; position: relative; word-break: break-word; border: 1px solid #1a1a1a; }
+        .msg.me { align-self: flex-end; background: #1a1a1a; border-bottom-right-radius: 2px; }
+        .msg.them { align-self: flex-start; background: #0a0a0a; border-bottom-left-radius: 2px; border-left: 3px solid var(--glow); }
+        .sys-msg { font-size: 0.65rem; color: #555; text-align: center; margin: 5px 0; font-style: italic; width: 100%; }
+        .tick { font-size: 0.7rem; color: #444; float: right; margin-left: 8px; }
         .delivered { color: var(--glow) !important; }
 
-        /* Call Screen */
-        #call-ui { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
-        #call-timer { font-family: monospace; font-size: 1.5rem; color: var(--glow); margin: 10px 0; }
+        /* Button Logic */
+        #link-btn.connecting { border-color: #ffaa00; color: #ffaa00; animation: blink 1s infinite; }
+        #link-btn.connected { border-color: var(--glow); background: rgba(0,255,204,0.1); color: var(--glow); }
+        @keyframes blink { 50% { opacity: 0.5; } }
 
-        /* Controls */
-        .controls { padding: 10px; background: #080808; border-top: 1px solid #1a1a1a; display: flex; flex-direction: column; gap: 8px; }
-        .row { display: flex; gap: 8px; }
-        input { flex: 1; background: #111; border: 1px solid #222; color: #fff; padding: 12px; border-radius: 8px; outline: none; font-size: 0.9rem; }
-        button { background: #111; border: 1px solid var(--glow); color: var(--glow); padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-
-        /* Voice Waveform Animation */
-        #v-area { display: none; background: #0a0a0a; padding: 15px; border-radius: 10px; flex-direction: column; align-items: center; border: 1px solid #222; }
+        /* Voice Area */
+        #v-area { display: none; background: #0a0a0a; padding: 15px; border-radius: 10px; flex-direction: column; align-items: center; border: 1px solid #222; margin-bottom: 5px; }
         .wave-container { display: flex; align-items: center; gap: 3px; height: 30px; margin-bottom: 10px; }
         .bar { width: 3px; height: 100%; background: var(--glow); border-radius: 2px; animation: pulse 0.8s infinite ease-in-out; }
         @keyframes pulse { 0%, 100% { height: 10%; } 50% { height: 100%; } }
         .bar:nth-child(2) { animation-delay: 0.1s; }
         .bar:nth-child(3) { animation-delay: 0.2s; }
-        .bar:nth-child(4) { animation-delay: 0.3s; }
-        .bar:nth-child(5) { animation-delay: 0.4s; }
 
-        #prompt-ui { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        /* Controls */
+        .controls { padding: 10px; background: #080808; border-top: 1px solid #1a1a1a; display: flex; flex-direction: column; gap: 8px; }
+        .row { display: flex; gap: 8px; }
+        input { flex: 1; background: #111; border: 1px solid #222; color: #fff; padding: 12px; border-radius: 8px; outline: none; }
+        button { background: #111; border: 1px solid var(--glow); color: var(--glow); padding: 10px; border-radius: 8px; font-weight: bold; }
+
+        #call-ui, #prompt-ui { position: fixed; inset: 0; background: #000; z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        #call-timer { font-family: monospace; font-size: 1.5rem; color: var(--glow); margin: 15px; }
     </style>
 </head>
 <body>
 
     <div id="prompt-ui">
-        <h2 style="color:var(--glow); margin-bottom:20px;">PHANTOM IDENTITY</h2>
-        <input type="text" id="name-input" placeholder="Enter Codename" style="max-width:250px; text-align:center;">
-        <button onclick="saveIdentity()" style="margin-top:20px; width:250px;">JOIN MESH</button>
+        <h2 id="prompt-title" style="color:var(--glow); margin-bottom:20px;">CODENAME REQUIRED</h2>
+        <input type="text" id="name-input" placeholder="e.g. PHANTOM-1" style="text-align:center; width: 80%;">
+        <button onclick="saveIdentity()" style="margin-top:20px; width:80%;">CONFIRM</button>
     </div>
 
     <div id="call-ui">
-        <div id="call-status" style="color:var(--blue); font-size: 1.2rem;">DIALING...</div>
+        <div id="call-status" style="color:var(--blue)">CALLING...</div>
         <div id="call-timer">00:00</div>
-        <div class="row" style="margin-top:40px;">
-            <button id="ans-btn" style="background:var(--glow); color:#000; padding:15px 30px; display:none" onclick="acceptCall()">ANSWER</button>
+        <div class="row">
+            <button id="ans-btn" style="background:var(--glow); color:#000; display:none; padding:15px 30px;" onclick="acceptCall()">ANSWER</button>
             <button style="background:var(--red); color:#fff; border:none; padding:15px 30px;" onclick="endCall()">HANG UP</button>
         </div>
     </div>
 
     <div id="header">
-        <div><span id="status-dot" class="dot"></span> <span id="display-name">...</span></div>
-        <div id="my-id-label">SYNCING...</div>
+        <div><span id="name-display" class="name-tag" onclick="editName()">...</span></div>
+        <div id="id-label" class="id-badge">ID: ----</div>
     </div>
 
     <div id="chat-box"></div>
 
     <div class="controls">
-        <div class="row">
-            <input type="text" id="target" placeholder="Peer ID">
-            <button id="link-btn" onclick="connect()">LINK</button>
-        </div>
-        <div class="row">
-            <input type="text" id="m-in" placeholder="Message...">
-            <button onclick="sendTxt()">SEND</button>
-        </div>
-        <div class="row">
-            <button onclick="startCall()" style="flex:1; color:var(--blue); border-color:var(--blue)">HD CALL</button>
-            <button id="vn-trigger" onclick="startVN()" style="flex:1">VOICE NOTE</button>
-        </div>
-
         <div id="v-area">
             <div class="wave-container">
                 <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
@@ -120,69 +84,110 @@
             </div>
         </div>
 
-        <div id="v-preview" style="display:none" class="row">
+        <div id="v-preview" style="display:none; padding:10px; border:1px solid #333; border-radius:8px; margin-bottom:5px;" class="row">
             <button onclick="playPreview()" id="pre-btn" style="flex:1">PLAY</button>
-            <button onclick="sendVN()" style="background:var(--glow); color:#000; border:none; flex:2">SEND VN</button>
+            <button onclick="sendVN()" style="background:var(--glow); color:#000; border:none; flex:2">SEND VOICE</button>
             <button onclick="cancelVN()">X</button>
+        </div>
+
+        <div class="row">
+            <input type="text" id="target" placeholder="Peer ID to Link">
+            <button id="link-btn" onclick="connect()">LINK</button>
+        </div>
+        <div class="row">
+            <input type="text" id="m-in" placeholder="Secure message...">
+            <button onclick="sendTxt()">SEND</button>
+        </div>
+        <div class="row">
+            <button onclick="startCall()" style="flex:1; color:var(--blue); border-color:var(--blue)">VOICE CALL</button>
+            <button id="vn-trigger" onclick="startVN()" style="flex:1">RECORD VN</button>
         </div>
     </div>
 
     <script>
-        let peer, conns = {}, myName, myId, localStream, curCall, rec, chunks = [], audioBlobUrl, 
-            vnTimer, vnSec = 0, callTimer, callSec = 0;
+        let peer, conns = {}, myName, myId, curCall, localStream, callTimer, callSec = 0, rec, chunks = [], audioBlobUrl, vnTimer, vnSec = 0;
         const previewAud = new Audio();
 
+        window.onload = () => {
+            const saved = localStorage.getItem('mesh_name');
+            if(saved) { myName = saved; init(); } 
+            else { document.getElementById('prompt-ui').style.display = 'flex'; }
+        };
+
+        // --- IDENTITY MANAGEMENT (NO REFRESH) ---
         function saveIdentity() {
             const n = document.getElementById('name-input').value.trim();
             if(!n) return;
+            const oldName = myName;
             myName = n;
             localStorage.setItem('mesh_name', n);
-            document.getElementById('prompt-ui').style.display='none';
-            init();
+            document.getElementById('name-display').innerText = myName;
+            document.getElementById('prompt-ui').style.display = 'none';
+
+            if(!peer) {
+                init();
+            } else {
+                // Broadcast name change to all connected peers
+                for(let k in conns) {
+                    conns[k].send({type: 'sys', body: `${oldName} is now ${myName}`, newName: myName});
+                }
+                addSystemMsg(`Identity updated to ${myName}`);
+            }
         }
 
+        function editName() {
+            document.getElementById('prompt-title').innerText = "UPDATE CODENAME";
+            document.getElementById('name-input').value = myName;
+            document.getElementById('prompt-ui').style.display = 'flex';
+        }
+
+        // --- PEER INITIALIZATION ---
         function init() {
             myId = localStorage.getItem('mesh_id') || Math.random().toString(36).substr(2,6).toUpperCase();
             localStorage.setItem('mesh_id', myId);
             peer = new Peer(myId);
             peer.on('open', id => { 
-                document.getElementById('my-id-label').innerText = "ID: " + id; 
-                document.getElementById('display-name').innerText = myName;
+                document.getElementById('id-label').innerText = "ID: " + id; 
+                document.getElementById('name-display').innerText = myName; 
             });
             peer.on('connection', c => setup(c));
             peer.on('call', call => {
                 curCall = call;
                 vibrate([400, 200, 400]);
-                document.getElementById('call-ui').style.display='flex';
-                document.getElementById('ans-btn').style.display='block';
-                document.getElementById('call-status').innerText = "INCOMING...";
+                document.getElementById('call-ui').style.display = 'flex';
+                document.getElementById('ans-btn').style.display = 'block';
+                document.getElementById('call-status').innerText = "INCOMING CALL";
             });
         }
 
         function connect() {
             const tid = document.getElementById('target').value.toUpperCase();
-            if(tid) {
-                document.getElementById('link-btn').innerText = "...";
-                setup(peer.connect(tid, {metadata: {name: myName}}));
-            }
+            if(!tid) return;
+            const btn = document.getElementById('link-btn');
+            btn.innerText = "CONNECTING...";
+            btn.className = "connecting";
+            setup(peer.connect(tid, {metadata: {name: myName}}));
+            setTimeout(() => { if(btn.innerText === "CONNECTING...") { btn.innerText = "LINK"; btn.className = ""; alert("Peer offline."); } }, 10000);
         }
 
         function setup(c) {
             c.on('open', () => {
                 conns[c.peer] = c;
-                document.getElementById('link-btn').innerText = "LINKED";
-                document.getElementById('status-dot').classList.add('online');
-                vibrate(100);
+                const btn = document.getElementById('link-btn');
+                btn.innerText = "LINKED";
+                btn.className = "connected";
+                vibrate([100, 50, 100]);
             });
             c.on('data', d => {
-                if(d.type === 'txt') { render(d.sender, d.body, d.id, false); c.send({type:'ack', id:d.id}); vibrate(100); }
+                if(d.type === 'txt') { render(d.sender, d.body, d.id, false); c.send({type:'ack', id:d.id}); vibrate(80); }
                 if(d.type === 'ack') { const t = document.getElementById('tk-'+d.id); if(t) t.innerText='✓✓', t.classList.add('delivered'); }
-                if(d.type === 'voc') { renderVoc(d.sender, d.body, d.id, false); c.send({type:'ack', id:d.id}); vibrate(100); }
+                if(d.type === 'voc') { renderVoc(d.sender, d.body, d.id, false); c.send({type:'ack', id:d.id}); vibrate(80); }
                 if(d.type === 'end') resetCallUI();
+                if(d.type === 'sys') { addSystemMsg(d.body); } // Receive name change notification
             });
         }
 
-        // --- CHAT LOGIC ---
+        // --- CHAT FUNCTIONS ---
         function sendTxt() {
             const v = document.getElementById('m-in').value;
             if(!v) return;
@@ -196,11 +201,17 @@
             const box = document.getElementById('chat-box');
             const tick = me ? `<span class="tick" id="tk-${id}">✓</span>` : '';
             const cls = me ? 'me' : 'them';
-            box.innerHTML += `<div class="msg ${cls}"><span class="sender-tag">${s}</span>${b}${tick}</div>`;
+            box.innerHTML += `<div class="msg ${cls}"><b style="font-size:0.6rem;display:block;color:var(--glow)">${s}</b>${b}${tick}</div>`;
             box.scrollTop = box.scrollHeight;
         }
 
-        // --- VOICE NOTES ---
+        function addSystemMsg(txt) {
+            const box = document.getElementById('chat-box');
+            box.innerHTML += `<div class="sys-msg">${txt}</div>`;
+            box.scrollTop = box.scrollHeight;
+        }
+
+        // --- VOICE NOTE ENGINE ---
         async function startVN() {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             rec = new MediaRecorder(stream);
@@ -216,12 +227,15 @@
             rec.start();
             vnSec = 0;
             document.getElementById('v-area').style.display = 'flex';
+            clearInterval(vnTimer);
             vnTimer = setInterval(() => { vnSec++; document.getElementById('v-timer').innerText = `00:${vnSec.toString().padStart(2,'0')}`; if(vnSec>=60) stopRec(); }, 1000);
         }
 
         function stopRec() { rec.stop(); clearInterval(vnTimer); }
-        function pauseRec() { rec.state === 'recording' ? (rec.pause(), clearInterval(vnTimer)) : (rec.resume(), startVNRefill()); }
-        function startVNRefill() { vnTimer = setInterval(() => { vnSec++; document.getElementById('v-timer').innerText = `00:${vnSec.toString().padStart(2,'0')}`; }, 1000); }
+        function pauseRec() { 
+            if(rec.state === 'recording') { rec.pause(); clearInterval(vnTimer); document.getElementById('p-btn').innerText="RESUME"; }
+            else { rec.resume(); document.getElementById('p-btn').innerText="PAUSE"; vnTimer = setInterval(() => { vnSec++; document.getElementById('v-timer').innerText = `00:${vnSec.toString().padStart(2,'0')}`; }, 1000); }
+        }
 
         async function sendVN() {
             const reader = new FileReader();
@@ -236,41 +250,41 @@
         }
 
         function renderVoc(s, b, id, me) {
-            const html = `<button onclick="playV('${id}')" id="btn-${id}">PLAY VN</button><audio id="aud-${id}" src="${b}"></audio>`;
+            const html = `<button onclick="playV('${id}')" id="btn-${id}" style="padding:5px">PLAY VOICE NOTE</button><audio id="aud-${id}" src="${b}"></audio>`;
             render(s, html, id, me);
         }
 
         window.playV = (id) => {
             const a = document.getElementById('aud-'+id), b = document.getElementById('btn-'+id);
             a.paused ? (a.play(), b.innerText='PAUSE') : (a.pause(), b.innerText='PLAY VN');
-            a.onended = () => b.innerText='PLAY VN';
+            a.onended = () => b.innerText='PLAY VOICE NOTE';
         };
 
         function cancelVN() { document.getElementById('v-preview').style.display='none'; }
         function playPreview() { previewAud.paused ? previewAud.play() : previewAud.pause(); }
 
-        // --- CALLS & CALL TIMER ---
+        // --- CALLS ---
         async function startCall() {
             const tid = document.getElementById('target').value.toUpperCase();
+            if(!conns[tid]) return alert("Connect link first");
             localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
             document.getElementById('call-ui').style.display='flex';
             curCall = peer.call(tid, localStream, {metadata: {name: myName}});
-            curCall.on('stream', s => { beginCallTimer(); playS(s); });
+            curCall.on('stream', s => { beginTimer(); playS(s); });
         }
 
         function acceptCall() {
             navigator.mediaDevices.getUserMedia({ audio: true }).then(s => {
                 localStream = s; curCall.answer(s);
                 document.getElementById('ans-btn').style.display='none';
-                beginCallTimer();
+                beginTimer();
                 curCall.on('stream', rs => playS(rs));
             });
         }
 
-        function beginCallTimer() {
-            document.getElementById('call-status').innerText = "CONNECTED";
-            callSec = 0;
-            clearInterval(callTimer);
+        function beginTimer() {
+            document.getElementById('call-status').innerText = "LIVE CALL";
+            callSec = 0; clearInterval(callTimer);
             callTimer = setInterval(() => {
                 callSec++;
                 let m = Math.floor(callSec / 60).toString().padStart(2,'0');
@@ -279,19 +293,8 @@
             }, 1000);
         }
 
-        function endCall() {
-            for(let k in conns) conns[k].send({type:'end'});
-            resetCallUI();
-        }
-
-        function resetCallUI() {
-            clearInterval(callTimer);
-            if(curCall) curCall.close();
-            if(localStream) localStream.getTracks().forEach(t=>t.stop());
-            document.getElementById('call-ui').style.display='none';
-            document.getElementById('call-timer').innerText = "00:00";
-        }
-
+        function endCall() { for(let k in conns) conns[k].send({type:'end'}); resetCallUI(); }
+        function resetCallUI() { clearInterval(callTimer); if(curCall) curCall.close(); if(localStream) localStream.getTracks().forEach(t => t.stop()); document.getElementById('call-ui').style.display='none'; }
         function playS(s) { const a = new Audio(); a.srcObject=s; a.play(); }
         function vibrate(p) { if(navigator.vibrate) navigator.vibrate(p); }
     </script>
